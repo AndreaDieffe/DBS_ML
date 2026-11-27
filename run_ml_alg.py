@@ -10,20 +10,8 @@ from kneed import KneeLocator
 from pathlib import Path
 
 
-def cluster_dbs_data(raw_data, fold=None, clust_plots=False, nclusters=None):
+def cluster_dbs_data(feature, fold=None, clust_plots=False, nclusters=None):
     #
-        # 'animal': animal,
-        # 'day': day,
-        # 'signal': sig,
-        # 'rate_spikes': rate_spikes,
-        # 'frequency_values': frequency_values,
-        # 'error_rate': error_rate,
-        # 'var_spikes': var_spikes,
-        # 'matrix_rates': matrix_rates
-
-    # possibility to provide a custom number of clusters
-
-    to_cluster = []
 
     fold = Path("C:/Users/adifranc/OneDrive - UAB - The University of Alabama at Birmingham/Finger, Adam's files - DBS_ML_FinalProject") if fold is None else Path(fold)
 
@@ -34,7 +22,7 @@ def cluster_dbs_data(raw_data, fold=None, clust_plots=False, nclusters=None):
 
         for k in K:
             kmeans = KMeans(n_clusters=k, random_state=0, n_init='auto')
-            kmeans.fit(to_cluster)
+            kmeans.fit(feature)
             wcss.append(kmeans.inertia_)
             
         if clust_plots:
@@ -54,7 +42,7 @@ def cluster_dbs_data(raw_data, fold=None, clust_plots=False, nclusters=None):
         nclusters = knee.elbow
 
     kmeans = KMeans(n_clusters=nclusters, n_init=20)
-    km = kmeans.fit(to_cluster)
+    km = kmeans.fit(feature)
     labels = km.labels_
     
     if clust_plots:
@@ -62,36 +50,26 @@ def cluster_dbs_data(raw_data, fold=None, clust_plots=False, nclusters=None):
         counts = np.bincount(labels)
         plt.bar(np.array([1,2,3,4]), counts)
         plt.xlabel('Cluster')
-        plt.ylabel('n of neurons')
+        plt.ylabel('n of trials')
         plt.savefig(save_clust / 'n_per_clust.png', dpi=300, bbox_inches='tight')
         plt.savefig(save_clust / 'n_per_clust.eps', dpi=300, bbox_inches='tight', format='eps')
         plt.close()
         #PCA plot
         pca = PCA(n_components=2)
-        X_2d = pca.fit_transform(to_cluster)
+        X_2d = pca.fit_transform(feature)
         plt.scatter(X_2d[:,0], X_2d[:,1], c=labels, cmap='tab10')
         plt.title('KMeans clusters (PCA projection)')
         plt.savefig(save_clust / 'PCA.png', dpi=300, bbox_inches='tight')
         plt.savefig(save_clust / 'PCA.eps', dpi=300, bbox_inches='tight', format='eps')
         plt.close()
         #TSNE plot
-        X_2d = TSNE(n_components=2, perplexity=30).fit_transform(to_cluster)
+        X_2d = TSNE(n_components=2, perplexity=30).fit_transform(feature)
         plt.scatter(X_2d[:,0], X_2d[:,1], c=labels, cmap='tab10')
         plt.title('t-SNE clustering view')
         plt.savefig(save_clust / 'tSNE.png', dpi=300, bbox_inches='tight')
         plt.savefig(save_clust / 'tSNE.eps', dpi=300, bbox_inches='tight', format='eps')
         plt.close()
-        #heatmap
-        order = np.argsort(labels)
-        plt.imshow(to_cluster[order], aspect='auto', cmap='magma')
-        plt.colorbar()
-        plt.title('Units sorted by cluster')
-        plt.xlabel('Frequency bins')
-        plt.ylabel('Units')
-        plt.savefig(save_clust / 'heatmap.png', dpi=300, bbox_inches='tight')
-        plt.savefig(save_clust / 'heatmap.eps', dpi=300, bbox_inches='tight', format='eps')
-        plt.close()
-        #tuning curves
+        #avg curves
         plt.figure(figsize=(10, 8))
         for k in range(nclusters):
             plt.plot(kmeans.cluster_centers_[k], label=f'Cluster {k}')
@@ -103,4 +81,4 @@ def cluster_dbs_data(raw_data, fold=None, clust_plots=False, nclusters=None):
         plt.savefig(save_clust / 'tuning_profiles.eps', dpi=300, bbox_inches='tight', format='eps')        
         plt.close()
     
-    return to_cluster, km
+    return km
