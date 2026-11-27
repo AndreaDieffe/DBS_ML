@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+from scipy.signal import find_peaks
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
@@ -82,3 +82,16 @@ def cluster_dbs_data(feature, fold=None, clust_plots=False, nclusters=None):
         plt.close()
     
     return km
+
+def faceflip(trials):
+
+    faceflipped_trials = []
+    
+    for trial in trials:
+        positive_peaks, _ = find_peaks(trial)
+        negative_peaks, _ = find_peaks(-trial)
+        peaks = np.sort(np.concatenate((positive_peaks, negative_peaks)))
+        first_peak = trial[peaks[0]] if len(peaks) > 0 else trial[0]
+        faceflipped_trial = -trial if first_peak < 0 else trial
+        faceflipped_trials.append(faceflipped_trial)
+    return faceflipped_trials
