@@ -86,7 +86,7 @@ def cluster_dbs_data(feature, fold=None, clust_plots=False, nclusters=None):
 def faceflip(trials):
 
     faceflipped_trials = []
-    
+
     for trial in trials:
         positive_peaks, _ = find_peaks(trial)
         negative_peaks, _ = find_peaks(-trial)
@@ -94,4 +94,7 @@ def faceflip(trials):
         first_peak = trial[peaks[0]] if len(peaks) > 0 else trial[0]
         faceflipped_trial = -trial if first_peak < 0 else trial
         faceflipped_trials.append(faceflipped_trial)
+
+    faceflipped_trials = np.array(faceflipped_trials)
+    
     return faceflipped_trials
